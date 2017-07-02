@@ -1,0 +1,588 @@
+diff -Naur lsdldoom-1.5.org/src/g_game.c lsdldoom-1.5/src/g_game.c
+--- lsdldoom-1.5.org/src/g_game.c	2011-10-22 11:21:37.000000000 -0700
++++ lsdldoom-1.5/src/g_game.c	2017-06-02 11:29:53.437583304 -0700
+@@ -264,16 +264,14 @@
+   memset(cmd,0,sizeof*cmd);
+   cmd->consistancy = consistancy[consoleplayer][maketic%BACKUPTICS];
+ 
+-  strafe = gamekeydown[key_strafe] || mousebuttons[mousebstrafe]
+-    || joybuttons[joybstrafe];
++  strafe = gamekeydown[key_strafe] || mousebuttons[mousebstrafe] || joybuttons[joybstrafe];
+   speed = autorun || gamekeydown[key_speed] || joybuttons[joybspeed]; // phares
+ 
+   forward = side = 0;
+ 
+     // use two stage accelerative turning
+     // on the keyboard and joystick
+-  if (joyxmove < 0 || joyxmove > 0 ||
+-      gamekeydown[key_right] || gamekeydown[key_left])
++  if (joyxmove < 0 || joyxmove > 0 || gamekeydown[key_right] || gamekeydown[key_left])
+     turnheld += ticdup;
+   else
+     turnheld = 0;
+@@ -332,8 +330,7 @@
+     // buttons
+   cmd->chatchar = HU_dequeueChatChar();
+ 
+-  if (gamekeydown[key_fire] || mousebuttons[mousebfire] ||
+-      joybuttons[joybfire])
++  if (gamekeydown[key_fire] || mousebuttons[mousebfire] || joybuttons[joybfire])
+     cmd->buttons |= BT_ATTACK;
+ 
+   if (gamekeydown[key_use] || joybuttons[joybuse])
+@@ -636,12 +633,9 @@
+     }
+ 
+   // any other key pops up menu if in demos
+-  if (gameaction == ga_nothing && !singledemo &&
+-      (demoplayback || gamestate == GS_DEMOSCREEN))
++  if (gameaction == ga_nothing && !singledemo && (demoplayback || gamestate == GS_DEMOSCREEN))
+     {
+-      if (ev->type == ev_keydown ||
+-          (ev->type == ev_mouse && ev->data1) ||
+-          (ev->type == ev_joystick && ev->data1) )
++      if (ev->type == ev_keydown || (ev->type == ev_mouse && ev->data1) || (ev->type == ev_joystick && ev->data1) )
+         {
+           M_StartControlPanel ();
+           return true;
+diff -Naur lsdldoom-1.5.org/src/i_joy.h lsdldoom-1.5/src/i_joy.h
+--- lsdldoom-1.5.org/src/i_joy.h	2011-09-22 01:14:31.000000000 -0700
++++ lsdldoom-1.5/src/i_joy.h	2017-06-01 14:29:05.261040914 -0700
+@@ -1,11 +1,14 @@
+-/* Emacs style mode select   -*- C++ -*- 
++/* Emacs style mode select   -*- C++ -*-
+  *-----------------------------------------------------------------------------
+  *
+- * $Id: i_joy.h,v 1.2 1999/10/12 13:00:56 cphipps Exp $
+  *
+- *  New joystick code for LxDoom
+- *  Copyright (C) 1999 by Colin Phipps
+- *  
++ *  PrBoom a Doom port merged with LxDoom and LSDLDoom
++ *  based on BOOM, a modified and improved DOOM engine
++ *  Copyright (C) 1999 by
++ *  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
++ *  Copyright (C) 1999-2000 by
++ *  Jess Haas, Nicolas Kalkhof, Colin Phipps, Florian Schulze
++ *
+  *  This program is free software; you can redistribute it and/or
+  *  modify it under the terms of the GNU General Public License
+  *  as published by the Free Software Foundation; either version 2
+@@ -18,7 +21,7 @@
+  *
+  *  You should have received a copy of the GNU General Public License
+  *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 
++ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+  *  02111-1307, USA.
+  *
+  * DESCRIPTION:
+@@ -40,12 +43,3 @@
+ 
+ void I_InitJoystick();
+ void I_PollJoystick();
+-
+-/*
+- * $Log: i_joy.h,v $
+- * Revision 1.2  1999/10/12 13:00:56  cphipps
+- * Changed header to GPL, converted C++ comments to C
+- *
+- */
+-
+-
+diff -Naur lsdldoom-1.5.org/src/l_joy.c lsdldoom-1.5/src/l_joy.c
+--- lsdldoom-1.5.org/src/l_joy.c	2011-09-22 01:14:31.000000000 -0700
++++ lsdldoom-1.5/src/l_joy.c	2017-06-04 05:23:05.220980103 -0700
+@@ -1,11 +1,14 @@
+-/* Emacs style mode select   -*- C++ -*- 
++/* Emacs style mode select   -*- C++ -*-
+  *-----------------------------------------------------------------------------
+  *
+- * $Id: l_joy.c,v 1.12 1999/10/31 09:12:17 cphipps Exp $
+  *
+- *  New module for LxDoom, a Doom port for Linux/Unix
+- *  Copyright (C) 1999 by Colin Phipps
+- *  
++ *  PrBoom a Doom port merged with LxDoom and LSDLDoom
++ *  based on BOOM, a modified and improved DOOM engine
++ *  Copyright (C) 1999 by
++ *  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
++ *  Copyright (C) 1999-2000 by
++ *  Jess Haas, Nicolas Kalkhof, Colin Phipps, Florian Schulze
++ *
+  *  This program is free software; you can redistribute it and/or
+  *  modify it under the terms of the GNU General Public License
+  *  as published by the Free Software Foundation; either version 2
+@@ -18,7 +21,7 @@
+  *
+  *  You should have received a copy of the GNU General Public License
+  *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 
++ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+  *  02111-1307, USA.
+  *
+  * DESCRIPTION:
+@@ -28,9 +31,11 @@
+  */
+ 
+ #ifndef lint
+-static const char rcsid[] = "$Id: l_joy.c,v 1.12 1999/10/31 09:12:17 cphipps Exp $";
+ #endif /* lint */
+ 
++#include <stdlib.h>
++
++//#include "SDL.h"
+ #include "doomdef.h"
+ #include "doomtype.h"
+ #include "m_argv.h"
+@@ -39,22 +44,6 @@
+ #include "i_joy.h"
+ #include "lprintf.h"
+ 
+-#undef NO_JOY_CODE
+-
+-#ifndef HAVE_LINUX_JOYSTICK_H
+-#define NO_JOY_CODE
+-#else
+-
+-#include <linux/joystick.h>
+-#include <stdio.h>
+-#include <fcntl.h>
+-#include <stdlib.h>
+-#include <unistd.h>
+-
+-static int joy_fd = -1;
+-
+-#endif
+-
+ int joyleft;
+ int joyright;
+ int joyup;
+@@ -62,183 +51,69 @@
+ 
+ int usejoystick;
+ 
++static SDL_Joystick *joystick;
++
+ void I_EndJoystick(void)
+ {
+-#ifndef NO_JOY_CODE
+   lprintf(LO_DEBUG, "I_EndJoystick : closing joystick\n");
+-  close(joy_fd);
+-  joy_fd = -1;
+-#endif
+ }
+ 
+-#ifndef NO_JOY_CODE
+-/* On read errors, try reopening. Patch from Benjamin McGee */
+-static int I_ReopenJoystick(void)
++void I_PollJoystick(void)
+ {
+-  char jdev[10];
+-  const char *fname = "I_ReopenJoystick : ";
+-  if (joy_fd != -1) I_EndJoystick();
+-  sprintf(jdev, "/dev/js%d", usejoystick-1);
+-  joy_fd = open(jdev, O_RDONLY);
+-  if (joy_fd == -1) {
+-    lprintf(LO_ERROR, "%serror re-opening %s\n", fname, jdev);
+-    return 0;
+-  }
+-  lprintf(LO_WARN, "%s%s successfully re-opened\n", fname, jdev);
+-  return 1;
+-}
+-#endif
++  event_t ev;
++  Sint16 axis_value;
+ 
+-#ifndef NO_JOY_CODE
+-static struct JS_DATA_TYPE jdata;
++  if (!usejoystick || (!joystick)) return;
++  ev.type = ev_joystick;
++  ev.data1 =
++    (SDL_JoystickGetButton(joystick,  0)<<0)  |
++    (SDL_JoystickGetButton(joystick,  1)<<1)  |
++    (SDL_JoystickGetButton(joystick,  2)<<2)  |
++    (SDL_JoystickGetButton(joystick,  3)<<3)  |
++    (SDL_JoystickGetButton(joystick,  4)<<4)  |
++    (SDL_JoystickGetButton(joystick,  5)<<5)  |
++    (SDL_JoystickGetButton(joystick,  6)<<6)  |
++    (SDL_JoystickGetButton(joystick,  7)<<7)  |
++    (SDL_JoystickGetButton(joystick,  8)<<8)  |
++    (SDL_JoystickGetButton(joystick,  9)<<9)  |
++    (SDL_JoystickGetButton(joystick, 10)<<10) |
++    (SDL_JoystickGetButton(joystick, 11)<<11);
++  axis_value = SDL_JoystickGetAxis(joystick, 0) / 3000;
++  if (abs(axis_value)<10) axis_value=0;
++  ev.data2 = axis_value;
++  axis_value = SDL_JoystickGetAxis(joystick, 1) / 3000;
++  if (abs(axis_value)<10) axis_value=0;
++  ev.data3 = axis_value;
+ 
+-static int I_ReadJoystick(void)
+-{
+-  if (read(joy_fd, &jdata, JS_RETURN) != JS_RETURN){
+-    lprintf(LO_WARN, "I_PollJoystick : read failed\n");
+-    I_EndJoystick();
+-    return 0;
+-  }
+-  return 1;
+-}
+-
+-static int I_WaitButton(void)
+-{
+-  do {
+-    usleep(10);
+-	if (!I_ReadJoystick() && !I_ReopenJoystick() && !I_ReadJoystick())
+-      return 0;
+-  } while (!jdata.buttons);
+-  while (jdata.buttons) {
+-    usleep(10);
+-    if (!I_ReadJoystick())
+-      return 0;
+-  }
+-  return 1;
+-}
+-#endif
+-
+-void I_PollJoystick(void)
+-{
+-#ifndef NO_JOY_CODE
+-  if (!usejoystick || (joy_fd == -1)) return;
+-  if (!I_ReadJoystick()) I_ReopenJoystick();
+-	if (I_ReadJoystick())	 {
+-    event_t ev;
+-
+-#ifndef DOSDOOM
+-    ev.type = ev_joystick;
+-    ev.data1 = jdata.buttons;
+-#else
+-    ev.type = ev_analogue;
+-    ev.data1 = ev.data3 = 0;
+-#endif
+-
+-    ev.data2=(jdata.x < joyleft) ? -1 : ((jdata.x > joyright) ? 1 : 0);
+-
+-#ifndef DOSDOOM
+-    ev.data3 = 
+-#else
+-    ev.data4 = 
+-#endif
+-      (jdata.y < joyup) ? -1 : ((jdata.y > joydown ) ? 1 : 0);
+-    D_PostEvent(&ev);
+-
+-#ifdef DOSDOOM
+-    /* Buttons handled as keypress events */
+-    {
+-      static unsigned int old_buttons = 0;
+-      int button_num;
+-
+-      for (button_num = 0; button_num<3; button_num++) {
+-	unsigned int mask = 1 << button_num;
+-
+-	if ((old_buttons & mask) != (jdata.buttons & mask)) {
+-	  ev.type = (jdata.buttons & mask) ? ev_keydown : ev_keyup;
+-	  ev.data1 = KEYD_JOY1 + button_num;
+-	}
+-      }
+-    }  
+-#endif
+-  }
+-#endif
++  D_PostEvent(&ev);
+ }
+ 
+ void I_InitJoystick(void)
+ {
+-#ifndef NO_JOY_CODE
+-  char jdev[10];
+   const char* fname = "I_InitJoystick : ";
++  int num_joysticks;
+ 
++  lprintf(LO_ERROR, "%satempting to open joystick %s\n", fname);
++  
+   if (!usejoystick) return;
+-  if (M_CheckParm("-nojoy") || (usejoystick>9) || (usejoystick<0)) {
+-    if ((usejoystick > 9) || (usejoystick < 0))
++  SDL_InitSubSystem(SDL_INIT_JOYSTICK);
++  num_joysticks=SDL_NumJoysticks();
++  if (M_CheckParm("-nojoy") || (usejoystick>num_joysticks) || (usejoystick<0)) {
++    if ((usejoystick > num_joysticks) || (usejoystick < 0))
+       lprintf(LO_WARN, "%sinvalid joystick %d\n", fname, usejoystick);
+     else
+       lprintf(LO_INFO, "%suser disabled\n", fname);
+-    joy_fd = -1; return;
++    return;
+   }
+-  sprintf(jdev, "/dev/js%d", usejoystick-1);
+-  joy_fd = open(jdev, O_RDONLY);
+-  if (joy_fd == -1)
+-    lprintf(LO_ERROR, "%serror opening %s\n", fname, jdev);
++  joystick=SDL_JoystickOpen(usejoystick-1);
++  if (!joystick)
++    lprintf(LO_ERROR, "%serror opening joystick %s\n", fname, SDL_JoystickName(usejoystick-1));
+   else {
+     atexit(I_EndJoystick);
+-    lprintf(LO_INFO, "%sopened %s\n", fname, jdev);
+-    if ((joyup == joydown) || (joyleft == joyright)) {
+-      int joyt, joyl, joyb, joyr, joycx, joycy;
+-      printf("Invalid joystick calibration. Calbrating now...\n");
+-      
+-      printf("Move joystick to top-left and press a button\n");
+-      fflush(stdin);
+-      if (!I_WaitButton()) return;
+-      joyt = jdata.y; joyl = jdata.x;
+-      
+-      printf("Move joystick to bottom right and press a button\n");
+-      fflush(stdin);
+-      if (!I_WaitButton()) return;
+-      joyb = jdata.y; joyr = jdata.x;
+-      
+-      printf("Move joystick to centre and press a button\n");
+-      fflush(stdin);
+-      if (!I_WaitButton()) return;
+-      joycy = jdata.y; joycx = jdata.x;
+-
+-      joyleft = (joyl + joycx)/2; joyright = (joyr + joycx)/2;
+-      joyup   = (joyt + joycy)/2; joydown  = (joyb + joycy)/2;
+-    }
++    lprintf(LO_INFO, "%sopened %s\n", fname, SDL_JoystickName(usejoystick-1));
++    joyup = 32767;
++    joydown = -32768;
++    joyright = 32767;
++    joyleft = -32768;
+   }
+-#endif
+ }
+-
+-/*
+- * $Log: l_joy.c,v $
+- * Revision 1.12  1999/10/31 09:12:17  cphipps
+- * Fix comment typo
+- *
+- * Revision 1.11  1999/10/31 09:10:10  cphipps
+- * Applied path from Benjamin McGee to reopen the joystick device on read
+- * errors.
+- * Same patch fixes a typo in the joystick calibration stuff.
+- * Changed a lot of fprintf's to lprintf's.
+- * Fixed last C++ comment.
+- *
+- * Revision 1.10  1999/10/12 13:01:11  cphipps
+- * Changed header to GPL
+- *
+- * Revision 1.9  1999/09/10 18:08:11  cphipps
+- * Modified to use autoconf generated define to decide whether joystick header is
+- * available. Thanks to Josh Parsons.
+- *
+- * Revision 1.8  1999/01/04 19:30:00  cphipps
+- * Remove duplicate joystick variable instances
+- *
+- * Revision 1.7  1998/12/16 22:27:12  cphipps
+- * Fix warnings when NO_JOY_CODE is defined by making the static unused functions not even be defined in that case
+- *
+- */
+-
+-
+-
+-
+-
+diff -Naur lsdldoom-1.5.org/src/l_sound_sdl.c lsdldoom-1.5/src/l_sound_sdl.c
+--- lsdldoom-1.5.org/src/l_sound_sdl.c	2011-10-22 22:32:11.000000000 -0700
++++ lsdldoom-1.5/src/l_sound_sdl.c	2017-05-26 14:05:56.070369655 -0700
+@@ -622,8 +622,9 @@
+  #endif
+   audio_channels = 2;
+   SAMPLECOUNT = 512;
+-  ;audio_buffers = SAMPLECOUNT*SAMPLERATE/11025;
+-  audio_buffers = 4096;
++  audio_buffers = SAMPLECOUNT*SAMPLERATE/11025;
++  //audio_buffers = 4096;
++  audio_buffers = 128;
+ 
+   if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers) < 0) {
+     fprintf(stderr ,"couldn't open audio with desired format\n");
+diff -Naur lsdldoom-1.5.org/src/l_video_sdl.c lsdldoom-1.5/src/l_video_sdl.c
+--- lsdldoom-1.5.org/src/l_video_sdl.c	2011-09-22 01:14:31.000000000 -0700
++++ lsdldoom-1.5/src/l_video_sdl.c	2017-06-02 10:04:23.356144603 -0700
+@@ -450,7 +450,9 @@
+   h = SCREENHEIGHT * multiply;
+   
+   // Initialize SDL with this graphics mode
+-  if ( SDL_Init(SDL_INIT_VIDEO) < 0 ) {
++
++  //  if ( SDL_Init(SDL_INIT_VIDEO) < 0 ) {
++  if ( SDL_Init(SDL_INIT_VIDEO|SDL_INIT_JOYSTICK) < 0 ) {
+     I_Error("Could not initialize SDL [%s]", SDL_GetError());
+   }
+ 
+diff -Naur lsdldoom-1.5.org/src/m_menu.c lsdldoom-1.5/src/m_menu.c
+--- lsdldoom-1.5.org/src/m_menu.c	2011-09-22 01:14:31.000000000 -0700
++++ lsdldoom-1.5/src/m_menu.c	2017-06-04 07:40:40.198332337 -0700
+@@ -1898,16 +1898,15 @@
+       
+         // For the 'use' key, you have to build the string
+       
+-        if (s->m_mouse)
+-          sprintf(&menu_buffer[strlen(menu_buffer)],"/DBL-CLK MB%d",*(s->m_mouse)+1);
++        //if (s->m_mouse)
++          //sprintf(&menu_buffer[strlen(menu_buffer)],"/DBL-CLK MB%d",*(s->m_mouse)+1);
+         if (s->m_joy)
+           sprintf(&menu_buffer[strlen(menu_buffer)],"/JSB%d",*(s->m_joy)+1);
+       }
+-      else if ((key == &key_up)   || (key == &key_speed) ||
+-               (key == &key_fire) || (key == &key_strafe))
++      else if ((key == &key_up)   || (key == &key_speed) || (key == &key_fire) || (key == &key_strafe))
+         {
+-	  if (s->m_mouse)
+-	    sprintf(&menu_buffer[strlen(menu_buffer)],"/MB%d",*(s->m_mouse)+1);
++	  //if (s->m_mouse)
++	    //sprintf(&menu_buffer[strlen(menu_buffer)],"/MB%d",*(s->m_mouse)+1);
+ 	  if (s->m_joy)
+ 	    sprintf(&menu_buffer[strlen(menu_buffer)],"/JSB%d",*(s->m_joy)+1);
+         }
+@@ -2121,8 +2120,7 @@
+       // See if a joystick or mouse button setting is allowed for
+       // this item.
+ 
+-      if ((current_setup_menu + set_menu_itemon)->m_mouse ||
+-        (current_setup_menu + set_menu_itemon)->m_joy)
++      if ((current_setup_menu + set_menu_itemon)->m_mouse || (current_setup_menu + set_menu_itemon)->m_joy)
+         {
+         strcpy(menu_buffer,"Press key or button for this action");
+         x = 49;
+@@ -3463,23 +3461,23 @@
+ 
+   if (ev->type == ev_joystick && joywait < gametic)
+     {
+-    if (ev->data3 == -1)
++    if (ev->data3 < 0)
+       {
+       ch = key_menu_up;                                      // phares 3/7/98
+       joywait = gametic + 5;
+       }
+-    else if (ev->data3 == 1)
++    else if (ev->data3 > 0 )
+       {
+       ch = key_menu_down;                                    // phares 3/7/98
+       joywait = gametic + 5;
+       }
+   
+-    if (ev->data2 == -1)
++    if (ev->data2 < 0)
+       {
+       ch = key_menu_left;                                    // phares 3/7/98
+       joywait = gametic + 2;
+       }
+-    else if (ev->data2 == 1)
++    else if (ev->data2 > 0)
+       {
+       ch = key_menu_right;                                   // phares 3/7/98
+       joywait = gametic + 2;
+@@ -3497,6 +3495,13 @@
+       joywait = gametic + 5;
+       }
+ 
++     if (ev->data1&128)
++      {
++      ch = key_menu_escape;                                   // add ESC to Start button
++      joywait = gametic + 5;
++      }
++
++
+     // phares 4/4/98:
+     // Handle joystick buttons 3 and 4, and allow them to pass down
+     // to where key binding can eat them.
+@@ -3513,6 +3518,21 @@
+         ch = 0; // meaningless, just to get you past the check for -1
+         joywait = gametic + 5;
+         }
++      if (ev->data1&16)
++        {
++        ch = 0; // meaningless, just to get you past the check for -1
++        joywait = gametic + 5;
++        }
++      if (ev->data1&32)
++        {
++        ch = 0; // meaningless, just to get you past the check for -1
++        joywait = gametic + 5;
++        }
++      if (ev->data1&64)
++        {
++        ch = 0; // meaningless, just to get you past the check for -1
++        joywait = gametic + 5;
++        }
+       }
+ 
+     }
+@@ -3952,6 +3972,10 @@
+             ch = 2;
+           else if (ev->data1 & 8)
+             ch = 3;
++          else if (ev->data1 & 16)
++            ch = 3;
++          else if (ev->data1 & 32)
++            ch = 3;
+           else
+             return true;
+           for (i = 0 ; keys_settings[i] && search ; i++)
+diff -Naur lsdldoom-1.5.org/src/m_misc.c lsdldoom-1.5/src/m_misc.c
+--- lsdldoom-1.5.org/src/m_misc.c	2011-09-22 01:14:31.000000000 -0700
++++ lsdldoom-1.5/src/m_misc.c	2017-06-04 07:24:47.017605769 -0700
+@@ -271,7 +271,7 @@
+    def_hex,ss_none}, // X options, see l_video_x.c  
+ 
+   {"Mouse settings",{NULL},{0},UL,UL,def_none,ss_none},
+-  {"use_mouse",{&usemouse},{1},0,1,
++  {"use_mouse",{&usemouse},{0},0,1,
+    def_bool,ss_none}, // enables use of mouse with DOOM
+   //jff 4/3/98 allow unlimited sensitivity
+   {"mouse_sensitivity_horiz",{&mouseSensitivity_horiz},{10},0,UL,
+@@ -280,11 +280,11 @@
+   {"mouse_sensitivity_vert",{&mouseSensitivity_vert},{10},0,UL,
+    def_int,ss_none}, /* adjust vertical (y) mouse sensitivity killough/mead */
+   //jff 3/8/98 allow -1 in mouse bindings to disable mouse function
+-  {"mouseb_fire",{&mousebfire},{0},-1,MAX_MOUSEB,
++  {"mouseb_fire",{NULL},{0},-1,MAX_MOUSEB,
+    def_int,ss_keys}, // mouse button number to use for fire
+-  {"mouseb_strafe",{&mousebstrafe},{1},-1,MAX_MOUSEB,
++  {"mouseb_strafe",{NULL},{1},-1,MAX_MOUSEB,
+    def_int,ss_keys}, // mouse button number to use for strafing
+-  {"mouseb_forward",{&mousebforward},{2},-1,MAX_MOUSEB,
++  {"mouseb_forward",{NULL},{2},-1,MAX_MOUSEB,
+    def_int,ss_keys}, // mouse button number to use for forward motion
+   //jff 3/8/98 end of lower range change for -1 allowed in mouse binding
+   
+@@ -431,20 +431,15 @@
+    0,MAX_KEY,def_key,ss_keys}, // key to take a screenshot
+   
+   {"Joystick settings",{NULL},{0},UL,UL,def_none,ss_none},
+-  {"use_joystick",{&usejoystick},{0},0,2,
+-   def_int,ss_none}, // number of joystick to use (0 for none)
+-  {"joy_left",{&joyleft},{0},  UL,UL,def_int,ss_none},
+-  {"joy_right",{&joyright},{0},UL,UL,def_int,ss_none},
+-  {"joy_up",  {&joyup},  {0},  UL,UL,def_int,ss_none},
+-  {"joy_down",{&joydown},{0},  UL,UL,def_int,ss_none},
+-  {"joyb_fire",{&joybfire},{0},0,UL,
+-   def_int,ss_keys}, // joystick button number to use for fire
+-  {"joyb_strafe",{&joybstrafe},{1},0,UL,
+-   def_int,ss_keys}, // joystick button number to use for strafing
+-  {"joyb_speed",{&joybspeed},{2},0,UL,
+-   def_int,ss_keys}, // joystick button number to use for running
+-  {"joyb_use",{&joybuse},{3},0,UL,
+-   def_int,ss_keys}, // joystick button number to use for use/open
++  {"use_joystick",{&usejoystick},{1},0,2,def_int,ss_none}, // number of joystick to use (0 for none)
++  {"joy_left",{&joyleft},{-32767},  UL,UL,def_int,ss_none},
++  {"joy_right",{&joyright},{32767},UL,UL,def_int,ss_none},
++  {"joy_up",  {&joyup},  {32767},  UL,UL,def_int,ss_none},
++  {"joy_down",{&joydown},{-32767},  UL,UL,def_int,ss_none},
++  {"joyb_fire",{&joybfire},{0},0,UL,def_int,ss_keys}, // joystick button number to use for fire
++  {"joyb_strafe",{&joybstrafe},{1},0,UL,def_int,ss_keys}, // joystick button number to use for strafing
++  {"joyb_speed",{&joybspeed},{2},0,UL,def_int,ss_keys}, // joystick button number to use for running
++  {"joyb_use",{&joybuse},{3},0,UL,def_int,ss_keys}, // joystick button number to use for use/open
+ 
+   {"Chat macros",{NULL},{0},UL,UL,def_none,ss_none},
+   {"chatmacro0", {0,&chat_macros[0]}, {0,HUSTR_CHATMACRO0},UL,UL,
+diff -Naur lsdldoom-1.5.org/stamp-h1 lsdldoom-1.5/stamp-h1
+--- lsdldoom-1.5.org/stamp-h1	2011-10-24 21:58:51.000000000 -0700
++++ lsdldoom-1.5/stamp-h1	1969-12-31 16:00:00.000000000 -0800
+@@ -1 +0,0 @@
+-timestamp for config.h
