@@ -1,5 +1,5 @@
-## AUS PB4 Doom
-It's Doom for the AUS clone of the Pandora's Box 4  what elese did you expect?
+## AUS JAPB Doom
+It's Doom for the AUS clone of the Pandora's Box what elese did you expect?
 
 
 ## Introduction
@@ -33,9 +33,9 @@ P1 Start - Menu
 
 
 ## Compatible Hardware
-The AUS clone of the Pandora's Box 4 is a very popular Jamma arcade board on sites like AliExpress.  There are several different versions of the product re-packaged under different names.
+The AUS clone of the Pandora's Box is a very popular Jamma arcade board on sites like AliExpress.  There are several different versions of the product re-packaged under different names.
 
-It is often referred to as ‘Just another Pandora’s Box’, and sold under the names Pandora’s Box 4/4s/4X, King of Air, Heroes of the Storm 3 & Little Elf 3X.  The number of built in Games will vary between 654 and 800.  If you are looking to purchase one look for a listing with the picture of the case and ensure it has the AUS logo on it.  Check with the seller that is a ‘genuine AUS’ version.
+It is often referred to as ‘Just another Pandora’s Box’, and sold under the names Pandora’s Box 3/4/4s/4X, King of Air, Heroes of the Storm 3 & Little Elf 3X.  The number of built in Games will vary between 520 and 800, or more.  If you are looking to purchase one look for a listing with the picture of the case and ensure it has the AUS logo on it.  Check with the seller that is a ‘genuine AUS’ version.
 
 The hardware is all fairly similar, however this version has only been tested as working on the 87 and the 92C version.
 
